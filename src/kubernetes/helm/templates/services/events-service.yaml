@@ -25,7 +25,38 @@ spec:
     spec:
       containers:
       - name: events-service
-       .... тут
+        image: "{{ .Values.eventsService.image.repository }}:{{ .Values.eventsService.image.tag | default "latest" }}"
+        imagePullPolicy: {{ .Values.eventsService.image.pullPolicy | default "IfNotPresent" }}
+        ports:
+        - containerPort: 8082
+          name: http
+        env:
+        - name: KAFKA_BROKERS
+          value: {{ .Values.eventsService.kafkaBrokers | quote }}
+        - name: KAFKA_TOPIC
+          value: {{ .Values.eventsService.kafkaTopic | default "cinema-events" | quote }}
+        - name: KAFKA_CONSUMER_GROUP
+          value: {{ .Values.eventsService.kafkaConsumerGroup | default "events-service" | quote }}
+        - name: EVENTS_PORT
+          value: "8082"
+        resources:
+          {{- toYaml .Values.eventsService.resources | nindent 10 }}
+        livenessProbe:
+          httpGet:
+            path: /api/events/health
+            port: 8082
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /api/events/health
+            port: 8082
+          initialDelaySeconds: 5
+          periodSeconds: 5
+      {{- if .Values.global.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml .Values.global.imagePullSecrets | nindent 8 }}
+      {{- end }}
 ---
 apiVersion: v1
 kind: Service
@@ -37,5 +68,11 @@ metadata:
     app.kubernetes.io/name: {{ include "cinemaabyss.name" . }}
     app.kubernetes.io/instance: {{ .Release.Name }}
 spec:
- ........ и тут
+  selector:
+    app: events-service
+  ports:
+  - port: 8082
+    targetPort: 8082
+    name: http
+  type: {{ .Values.eventsService.service.type | default "ClusterIP" }}
 {{- end }}

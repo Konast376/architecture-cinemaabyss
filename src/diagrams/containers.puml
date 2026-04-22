@@ -1,0 +1,64 @@
+@startuml
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml
+
+Person(user, "Пользователь", "")
+System_Ext(payment_system, "Платежная система", "")
+System_Ext(recommendation_system, "Внешняя рекомендательная система", "")
+
+System_Boundary(clients, "Клиентские приложения") {
+    Container(mobile_app, "Мобильное приложение", "iOS/Android", "Интерфейс для управления")
+    Container(web_app, "Веб-версия", "React/Vue", "Интерфейс для управления")
+}
+
+Container(message_broker, "Брокер сообщений", "RabbitMQ ", "Асинхронное взаимодействие")
+
+System_Boundary(kino_bezdna, "Кинобездна") {
+    Container(billing_service, "Billing Service", "Go", "Платежи, управление подписками, проверка доступа")
+    Container(api_gateway_service, "API Gateway", "Go", "Точка входа приложения")
+    Container(user_service, "User Service", "Go", "Управление профилями, аутентификация, регистрация")
+    Container(viewing_service, "Viewing Service", "Go", "Трекинг просмотров, статистика, история")
+    Container(rating_service, "Rating Service", "Go", "Оценки и отзывы пользователей на фильмы")
+    Container(movie_catalog_service, "Movie Catalog Service", "Go", "Каталог фильмов, метаданные, жанры")
+    Container(recommendation_service, "Recommendation Service", "Go", "Хранение и выдача персональных рекомендаций")
+}
+
+System_Boundary(databases, "Базы данных") {
+    ContainerDb(db_billing, "БД платежей и подписок", "PostgreSQL", "Платежи, управление подписками, проверка доступа")
+    ContainerDb(db_user, "БД пользователей", "PostgreSQL", "Данные пользователей")
+    ContainerDb(db_movie_catalog, "БД каталога фильмов", "PostgreSQL", "Каталог фильмов, метаданные, жанры")
+    ContainerDb(db_viewing, "БД просмотров", "PostgreSQL", "Трекинг просмотров, статистика, история")
+    ContainerDb(db_rating, "БД рейтинга", "PostgreSQL", "Оценки и отзывы пользователей на фильмы")
+
+    ContainerDb(db_recommendations, "БД рекомендаций", "Redis", "Кеш рекомендаций")
+    Container(file_storage, "Хранилище файлов", "S3", "Видео, бэкапы, медиафайлы")
+}
+
+' Взаимодействие между сервисами
+Rel(user, mobile_app, "")
+Rel(user, web_app, "")
+Rel(mobile_app, api_gateway_service, "")
+Rel(web_app, api_gateway_service, "")
+
+api_gateway_service <---> user_service : ""
+api_gateway_service <---> movie_catalog_service : ""
+api_gateway_service <---> billing_service : ""
+api_gateway_service <---> viewing_service : ""
+api_gateway_service <---> rating_service : ""
+
+Rel(recommendation_service, db_recommendations, "")
+Rel(movie_catalog_service, recommendation_service, "Запрашивает рекомендованные", "gRPC/REST")
+Rel(billing_service, payment_system, "")
+
+' Интеграция с брокером сообщений
+Rel(recommendation_system, message_broker, "")
+Rel(message_broker, recommendation_service, "Подписывается на обновления", "AMQP")
+
+' Взаимодействие с БД
+user_service <--> db_user : ""
+movie_catalog_service <--> db_movie_catalog : ""
+movie_catalog_service <--> file_storage : ""
+billing_service <--> db_billing : ""
+viewing_service <--> db_viewing : ""
+rating_service <--> db_rating : ""
+
+@enduml

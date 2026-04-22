@@ -1,0 +1,54 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: proxy-service
+  namespace: cinemaabyss
+  labels:
+    app: proxy-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: proxy-service
+  template:
+    metadata:
+      labels:
+        app: proxy-service
+    spec:
+      containers:
+        - name: proxy-service
+          image: ghcr.io/konast376/architecture-cinemaabyss/proxy-service:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8000
+          env:
+            - name: MONOLITH_URL
+              value: "http://monolith:8080"
+            - name: MOVIES_SERVICE_URL
+              value: "http://movies-service:8081"
+            - name: EVENTS_SERVICE_URL
+              value: "http://events-service:8082"
+            - name: MOVIES_MIGRATION_PERCENT
+              valueFrom:
+                configMapKeyRef:
+                  name: cinemaabyss-config
+                  key: MOVIES_MIGRATION_PERCENT
+          livenessProbe:
+            httpGet:
+              path: /api/movies/health?full=1
+              port: 8000
+            initialDelaySeconds: 15
+            periodSeconds: 10
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: proxy-service
+  namespace: cinemaabyss
+spec:
+  selector:
+    app: proxy-service
+  ports:
+    - port: 8000
+      targetPort: 8000
+  type: ClusterIP
