@@ -5,7 +5,8 @@
 1. Спроектируйте to be архитектуру КиноБездны, разделив всю систему на отдельные домены и организовав интеграционное взаимодействие и единую точку вызова сервисов.
 Результат представьте в виде контейнерной диаграммы в нотации С4.
 Добавьте ссылку на файл в этот шаблон
-[ссылка на файл](ссылка)
+
+[Диаграмма контейнеров](https://github.com/Konast376/architecture-cinemaabyss/blob/cinema/src/diagrams/containers.puml)
 
 # Задание 2
 
@@ -57,7 +58,11 @@
     - Добавьте в docker-compose новый сервис, kafka там уже есть
 
 Необходимые тесты для проверки этого API вызываются при запуске npm run test:local из папки tests/postman 
-Приложите скриншот тестов и скриншот состояния топиков Kafka из UI http://localhost:8090 
+Приложите скриншот тестов и скриншот состояния топиков Kafka из UI http://localhost:8090
+
+[Скриншот тестов](https://github.com/Konast376/architecture-cinemaabyss/blob/cinema/src/screens/tests-screen.png)
+[Состояние топиков Kafka](https://github.com/Konast376/architecture-cinemaabyss/blob/cinema/src/screens/topics-screen.png)
+
 
 # Задание 3
 
@@ -272,9 +277,14 @@ cat .docker/config.json | base64
   Часть тестов с health-чек упадет, но создание событий отработает.
   Откройте логи event-service и сделайте скриншот обработки событий
 
+[Скриншот обработки событий](https://github.com/Konast376/architecture-cinemaabyss/blob/cinema/src/screens/events-service-logs.png)
+
 #### Шаг 3
 Добавьте сюда скриншота вывода при вызове https://cinemaabyss.example.com/api/movies и  скриншот вывода event-service после вызова тестов.
 
+[Скриншот вывода при вызове api/movies 1](https://github.com/Konast376/architecture-cinemaabyss/blob/cinema/src/screens/movies-api.png)
+[Скриншот вывода при вызове api/movies 2](https://github.com/Konast376/architecture-cinemaabyss/blob/cinema/src/screens/movies-api-2.png)
+[Скриншот вывода event-service после вызова тестов](https://github.com/Konast376/architecture-cinemaabyss/blob/cinema/src/screens/events-service-tests.png)
 
 # Задание 4
 Для простоты дальнейшего обновления и развертывания вам как архитектуру необходимо так же реализовать helm-чарты для прокси-сервиса и проверить работу 
@@ -349,6 +359,10 @@ minikube tunnel
 Потом вызовите 
 https://cinemaabyss.example.com/api/movies
 и приложите скриншот развертывания helm и вывода https://cinemaabyss.example.com/api/movies
+
+[Скриншот развертывания helm](https://github.com/Konast376/architecture-cinemaabyss/blob/cinema/src/screens/helm-install.png)
+[Скриншот вывода api/movies 1](https://github.com/Konast376/architecture-cinemaabyss/blob/cinema/src/screens/movies-api-after-helm.png)
+[Скриншот вывода api/movies 2](https://github.com/Konast376/architecture-cinemaabyss/blob/cinema/src/screens/movies-api-after-helm-2.png)
 
 ## Удаляем все
 

@@ -25,7 +25,42 @@ spec:
     spec:
       containers:
       - name: proxy-service
-        ..... тут
+        image: "{{ .Values.proxyService.image.repository }}:{{ .Values.proxyService.image.tag | default "latest" }}"
+        imagePullPolicy: {{ .Values.proxyService.image.pullPolicy | default "IfNotPresent" }}
+        ports:
+        - containerPort: 8000
+          name: http
+        env:
+        - name: MONOLITH_URL
+          value: {{ .Values.proxyService.monolithUrl | quote }}
+        - name: MOVIES_SERVICE_URL
+          value: {{ .Values.proxyService.moviesServiceUrl | quote }}
+        - name: EVENTS_SERVICE_URL
+          value: {{ .Values.proxyService.eventsServiceUrl | quote }}
+        - name: MOVIES_MIGRATION_PERCENT
+          value: {{ .Values.proxyService.moviesMigrationPercent | default "100" | quote }}
+        - name: GRADUAL_MIGRATION
+          value: {{ .Values.proxyService.gradualMigration | default "true" | quote }}
+        - name: PORT
+          value: "8000"
+        resources:
+          {{- toYaml .Values.proxyService.resources | nindent 10 }}
+        livenessProbe:
+          httpGet:
+            path: /api/movies/health
+            port: 8000
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /api/movies/health
+            port: 8000
+          initialDelaySeconds: 5
+          periodSeconds: 5
+      {{- if .Values.global.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml .Values.global.imagePullSecrets | nindent 8 }}
+      {{- end }}
 ---
 apiVersion: v1
 kind: Service
@@ -38,5 +73,10 @@ metadata:
     app.kubernetes.io/instance: {{ .Release.Name }}
 spec:
   selector:
-    ... и тут
+    app: proxy-service
+  ports:
+  - port: 8000
+    targetPort: 8000
+    name: http
+  type: {{ .Values.proxyService.service.type | default "ClusterIP" }}
 {{- end }}

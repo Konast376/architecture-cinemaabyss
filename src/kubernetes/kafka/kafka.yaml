@@ -48,6 +48,7 @@ spec:
       containers:
       - name: zookeeper
         image: wurstmeister/zookeeper
+        imagePullPolicy: IfNotPresent
         ports:
         - containerPort: 2181
           name: client
